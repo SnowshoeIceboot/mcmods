@@ -85,9 +85,9 @@ public class BlockFire extends Block
         int l = world.getBlockMetadata(i, j, k);
         if(l < 15)
         {
-            world.setBlockMetadata(i, j, k, l + random.nextInt(3) / 2);
+            world.setBlockMetadataWithNotify(i, j, k, l + 1);
+            world.scheduleBlockUpdate(i, j, k, blockID, tickRate());
         }
-        world.scheduleBlockUpdate(i, j, k, blockID, tickRate());
         if(!flag && !func_263_h(world, i, j, k))
         {
             if(!world.isBlockNormalCube(i, j - 1, k) || l > 3)
@@ -101,49 +101,50 @@ public class BlockFire extends Block
             world.setBlockWithNotify(i, j, k, 0);
             return;
         }
-        tryToCatchBlockOnFire(world, i + 1, j, k, 300, random, l);
-        tryToCatchBlockOnFire(world, i - 1, j, k, 300, random, l);
-        tryToCatchBlockOnFire(world, i, j - 1, k, 250, random, l);
-        tryToCatchBlockOnFire(world, i, j + 1, k, 250, random, l);
-        tryToCatchBlockOnFire(world, i, j, k - 1, 300, random, l);
-        tryToCatchBlockOnFire(world, i, j, k + 1, 300, random, l);
-        for(int i1 = i - 1; i1 <= i + 1; i1++)
+        if(l % 2 == 0 && l > 2)
         {
-            for(int j1 = k - 1; j1 <= k + 1; j1++)
+            tryToCatchBlockOnFire(world, i + 1, j, k, 300, random, l);
+            tryToCatchBlockOnFire(world, i - 1, j, k, 300, random, l);
+            tryToCatchBlockOnFire(world, i, j - 1, k, 250, random, l);
+            tryToCatchBlockOnFire(world, i, j + 1, k, 250, random, l);
+            tryToCatchBlockOnFire(world, i, j, k - 1, 300, random, l);
+            tryToCatchBlockOnFire(world, i, j, k + 1, 300, random, l);
+            for(int i1 = i - 1; i1 <= i + 1; i1++)
             {
-                for(int k1 = j - 1; k1 <= j + 4; k1++)
+                for(int j1 = k - 1; j1 <= k + 1; j1++)
                 {
-                    if(i1 == i && k1 == j && j1 == k)
+                    for(int k1 = j - 1; k1 <= j + 4; k1++)
                     {
-                        continue;
+                        if(i1 == i && k1 == j && j1 == k)
+                        {
+                            continue;
+                        }
+                        int l1 = 100;
+                        if(k1 > j + 1)
+                        {
+                            l1 += (k1 - (j + 1)) * 100;
+                        }
+                        int i2 = getChanceOfNeighborsEncouragingFire(world, i1, k1, j1);
+                        if(i2 > 0 && random.nextInt(l1) <= i2 && (!world.func_27161_C() || !world.canBlockBeRainedOn(i1, k1, j1)) && !world.canBlockBeRainedOn(i1 - 1, k1, k) && !world.canBlockBeRainedOn(i1 + 1, k1, j1) && !world.canBlockBeRainedOn(i1, k1, j1 - 1) && !world.canBlockBeRainedOn(i1, k1, j1 + 1))
+                        {
+                            world.setBlockWithNotify(i1, k1, j1, blockID);
+                        }
                     }
-                    int l1 = 100;
-                    if(k1 > j + 1)
-                    {
-                        l1 += (k1 - (j + 1)) * 100;
-                    }
-                    int i2 = getChanceOfNeighborsEncouragingFire(world, i1, k1, j1);
-                    if(i2 <= 0)
-                    {
-                        continue;
-                    }
-                    int j2 = (i2 + 40) / (l + 30);
-                    if(j2 <= 0 || random.nextInt(l1) > j2 || world.func_27161_C() && world.canBlockBeRainedOn(i1, k1, j1) || world.canBlockBeRainedOn(i1 - 1, k1, k) || world.canBlockBeRainedOn(i1 + 1, k1, j1) || world.canBlockBeRainedOn(i1, k1, j1 - 1) || world.canBlockBeRainedOn(i1, k1, j1 + 1))
-                    {
-                        continue;
-                    }
-                    int k2 = l + random.nextInt(5) / 4;
-                    if(k2 > 15)
-                    {
-                        k2 = 15;
-                    }
-                    world.setBlockAndMetadataWithNotify(i1, k1, j1, blockID, k2);
+
                 }
 
             }
 
         }
-
+        if(l == 15)
+        {
+            tryToCatchBlockOnFire(world, i + 1, j, k, 1, random, l);
+            tryToCatchBlockOnFire(world, i - 1, j, k, 1, random, l);
+            tryToCatchBlockOnFire(world, i, j - 1, k, 1, random, l);
+            tryToCatchBlockOnFire(world, i, j + 1, k, 1, random, l);
+            tryToCatchBlockOnFire(world, i, j, k - 1, 1, random, l);
+            tryToCatchBlockOnFire(world, i, j, k + 1, 1, random, l);
+        }
     }
 
     private void tryToCatchBlockOnFire(World world, int i, int j, int k, int l, Random random, int i1)
@@ -152,14 +153,9 @@ public class BlockFire extends Block
         if(random.nextInt(l) < j1)
         {
             boolean flag = world.getBlockId(i, j, k) == Block.tnt.blockID;
-            if(random.nextInt(i1 + 10) < 5 && !world.canBlockBeRainedOn(i, j, k))
+            if(random.nextInt(2) == 0 && !world.canBlockBeRainedOn(i, j, k))
             {
-                int k1 = i1 + random.nextInt(5) / 4;
-                if(k1 > 15)
-                {
-                    k1 = 15;
-                }
-                world.setBlockAndMetadataWithNotify(i, j, k, blockID, k1);
+                world.setBlockWithNotify(i, j, k, blockID);
             } else
             {
                 world.setBlockWithNotify(i, j, k, 0);
